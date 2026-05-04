@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>건설현장 검색 도구</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f8; padding: 20px; text-align: center; }
+        .search-box { background-color: #fff9c4; padding: 30px; border-radius: 20px; border: 3px solid #fbc02d; display: inline-block; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input { padding: 15px; font-size: 20px; border-radius: 10px; border: 1px solid #ccc; width: 400px; outline: none; }
+        input:focus { border-color: #fbc02d; box-shadow: 0 0 8px #fbc02d; }
+        .result-item { background: white; border: 1px solid #eee; margin: 15px auto; padding: 20px; max-width: 600px; border-radius: 15px; display: flex; flex-direction: column; align-items: flex-start; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .info-text { margin-bottom: 5px; font-size: 16px; color: #333; text-align: left; }
+        .info-text b { color: #2e7d32; }
+        .copy-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background-color: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .copy-btn:hover { background-color: #388e3c; }
+        #loading { font-size: 18px; color: #666; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <h2>🚜 건설현장 데이터 검색기</h2>
+    
+    <div class="search-box">
+        <input type="text" id="searchInput" onkeyup="searchData()" placeholder="건설사, 현장명 또는 주소 검색...">
+    </div>
+
+    <div id="loading">데이터를 불러오고 있습니다... 잠시만 기다려주세요!</div>
+    <div id="results"></div>
+
+    <script>
+        let allData = [];
+        // 보내주신 시트 ID입니다.
+        const sheetId = '1_XDHj5-AjpU7ZIB0jlgUVDLUJ5y7LlAwRqel-JYpork';
+        // 구글 시트 데이터를 가져오는 특수 주소
+        // 이 주소 형식이 가장 확실하게 데이터를 가져옵니다!
+const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq=select%20A,B,C`;
+
+        async function loadData() {
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                
+                // 시트의 각 행에서 A(건설사), B(현장명), C(주소)를 가져와서 정리합니다.
+                allData = json.table.rows.map(row => ({
+                    company: row.c[0] ? String(row.c[0].v) : "",
+                    site: row.c[1] ? String(row.c[1].v) : "",
+                    address: row.c[2] ? String(row.c[2].v) : ""
+                })).filter(item => item.company !== "건설사"); // 제목줄은 제외
+
+                document.getElementById('loading').style.display = 'none';
+                renderResults(allData);
+            } catch (error) {
+                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다. 시트 설정을 다시 확인해주세요!';
+            }
+        }
+
+        function renderResults(dataList) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            dataList.forEach(item => {
+                const fullText = `${item.company} ${item.site} ${item.address}`;
+                const card = document.createElement('div');
+                card.className = 'result-item';
+                card.innerHTML = `
+                    <div class="info-text"><b>건설사:</b> ${item.company}</div>
+                    <div class="info-text"><b>현장명:</b> ${item.site}</div>
+                    <div class="info-text"><b>주소:</b> ${item.address}</div>
+                    <button class="copy-btn" onclick="copyToClipboard('${fullText}')">전체 복사</button>
+                `;
+                resultsDiv.appendChild(card);
+            });
+        }
+
+        function searchData() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allData.filter(item => 
+                item.company.toLowerCase().includes(query) || 
+                item.site.toLowerCase().includes(query) || 
+                item.address.toLowerCase().includes(query)
+            );
+            renderResults(filtered);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('복사되었습니다!\n' + text);
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
