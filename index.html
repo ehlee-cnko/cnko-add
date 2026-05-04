@@ -11,20 +11,14 @@
         .info-text { margin-bottom: 5px; font-size: 16px; color: #333; text-align: left; }
         .info-text b { color: #2e7d32; }
         .copy-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background-color: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .copy-btn:hover { background-color: #388e3c; }
         #loading { font-size: 18px; color: #666; margin-top: 50px; }
-        
-        /* 제목 스타일 추가 */
-        .title-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-        .logo-img { height: 40px; width: auto; border-radius: 4px; }
+        h2 { color: #2c3e50; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
-    <div class="title-container">
-        <!-- 보내주신 로고 이미지가 들어가는 자리입니다 -->
-        <img src="https://github.com/svteam7-netizen/cnko-add/blob/main/image_6423aa.png?raw=true" class="logo-img" onerror="this.style.display='none'">
-        <h2 style="margin: 0;">씨앤코 현장주소</h2>
-    </div>
+    <h2>🏢 씨앤코 현장주소</h2>
     
     <div class="search-box">
         <input type="text" id="searchInput" onkeyup="searchData()" placeholder="건설사, 현장명 또는 주소 검색...">
@@ -54,13 +48,20 @@
                 document.getElementById('loading').style.display = 'none';
                 renderResults(allData);
             } catch (error) {
-                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다.';
+                console.error(error);
+                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다. 구글 시트 공유 설정을 확인해주세요.';
             }
         }
 
         function renderResults(dataList) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
+            
+            if (dataList.length === 0) {
+                resultsDiv.innerHTML = '<p style="color:#999; margin-top:20px;">검색 결과가 없습니다.</p>';
+                return;
+            }
+
             dataList.forEach(item => {
                 const fullText = `${item.company} ${item.site} ${item.address}`;
                 const card = document.createElement('div');
@@ -75,22 +76,36 @@
             });
         }
 
+        // 띄어쓰기(다중 키워드) 검색 기능
         function searchData() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allData.filter(item => 
-                item.company.toLowerCase().includes(query) || 
-                item.site.toLowerCase().includes(query) || 
-                item.address.toLowerCase().includes(query)
-            );
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!query) {
+                renderResults(allData);
+                return;
+            }
+
+            // 공백을 기준으로 단어를 나눕니다.
+            const keywords = query.split(/\s+/);
+
+            const filtered = allData.filter(item => {
+                const targetText = (item.company + item.site + item.address).toLowerCase();
+                // 입력된 모든 단어가 포함되어 있는지 검사 (AND 검색)
+                return keywords.every(keyword => targetText.includes(keyword));
+            });
+
             renderResults(filtered);
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('복사되었습니다!\n' + text);
+            }).catch(err => {
+                alert('복사 실패! 브라우저 설정을 확인해주세요.');
             });
         }
 
+        // 페이지 로드시 데이터 불러오기 실행
         loadData();
     </script>
 </body>
