@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title> 씨앤코 현장주소 검색 </title>
+    <title>씨앤코 현장주소</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f8; padding: 20px; text-align: center; }
         .search-box { background-color: #fff9c4; padding: 30px; border-radius: 20px; border: 3px solid #fbc02d; display: inline-block; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -12,27 +12,30 @@
         .info-text b { color: #2e7d32; }
         .copy-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background-color: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #loading { font-size: 18px; color: #666; margin-top: 50px; }
+        
+        /* 제목 스타일 추가 */
+        .title-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+        .logo-img { height: 40px; width: auto; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h2 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-    <img src="https://api.pasted.club/i/642aeb/logo_cnko.png" alt="Logo" style="height: 30px; width: auto;"> 
-    씨앤코 현장주소
-</h2>
+    <div class="title-container">
+        <!-- 보내주신 로고 이미지가 들어가는 자리입니다 -->
+        <img src="https://github.com/svteam7-netizen/cnko-add/blob/main/image_6423aa.png?raw=true" class="logo-img" onerror="this.style.display='none'">
+        <h2 style="margin: 0;">씨앤코 현장주소</h2>
+    </div>
     
     <div class="search-box">
         <input type="text" id="searchInput" onkeyup="searchData()" placeholder="건설사, 현장명 또는 주소 검색...">
     </div>
 
-    <div id="loading">원본데이터 탭에서 내용을 불러오고 있습니다...</div>
+    <div id="loading">데이터를 불러오고 있습니다...</div>
     <div id="results"></div>
 
     <script>
         let allData = [];
         const sheetId = '1_XDHj5-AjpU7ZIB0jlgUVDLUJ5y7LlAwRqel-JYpork';
-        
-        // 핵심 수정 부분: '원본데이터' 탭을 강제로 지정합니다.
         const sheetName = '원본데이터';
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
@@ -42,7 +45,6 @@
                 const text = await res.text();
                 const json = JSON.parse(text.substring(47).slice(0, -2));
                 
-                // 시트 구조에 맞게 데이터를 가져옵니다 (A, B, C열)
                 allData = json.table.rows.map(row => ({
                     company: row.c[0] ? String(row.c[0].v || "") : "",
                     site: row.c[1] ? String(row.c[1].v || "") : "",
@@ -52,15 +54,13 @@
                 document.getElementById('loading').style.display = 'none';
                 renderResults(allData);
             } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다. 탭 이름을 확인해 주세요!';
+                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다.';
             }
         }
 
         function renderResults(dataList) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
-            
             dataList.forEach(item => {
                 const fullText = `${item.company} ${item.site} ${item.address}`;
                 const card = document.createElement('div');
