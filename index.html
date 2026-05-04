@@ -2,18 +2,81 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>씨앤코 현장주소</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f8; padding: 20px; text-align: center; }
-        .search-box { background-color: #fff9c4; padding: 30px; border-radius: 20px; border: 3px solid #fbc02d; display: inline-block; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input { padding: 15px; font-size: 20px; border-radius: 10px; border: 1px solid #ccc; width: 400px; outline: none; }
-        .result-item { background: white; border: 1px solid #eee; margin: 15px auto; padding: 20px; max-width: 600px; border-radius: 15px; display: flex; flex-direction: column; align-items: flex-start; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .info-text { margin-bottom: 5px; font-size: 16px; color: #333; text-align: left; }
+        body { 
+            font-family: 'Malgun Gothic', sans-serif; 
+            background-color: #f4f7f8; 
+            padding: 10px; 
+            margin: 0;
+            text-align: center; 
+        }
+        h2 { color: #2c3e50; margin: 20px 0; font-size: 1.5rem; }
+        .search-box { 
+            background-color: #fff9c4; 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 3px solid #fbc02d; 
+            display: block; 
+            margin: 0 auto 20px auto; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            box-sizing: border-box;
+            width: 100%;
+        }
+        input { 
+            padding: 15px; 
+            font-size: 18px; 
+            border-radius: 10px; 
+            border: 1px solid #ccc; 
+            width: 100%; 
+            box-sizing: border-box; 
+            outline: none; 
+        }
+        .result-item { 
+            background: white; 
+            border: 1px solid #eee; 
+            margin: 10px 0; 
+            padding: 15px; 
+            width: 100%; 
+            max-width: none; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            position: relative; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .info-text { 
+            margin-bottom: 5px; 
+            font-size: 15px; 
+            color: #333; 
+            line-height: 1.4;
+            padding-right: 85px; 
+        }
         .info-text b { color: #2e7d32; }
-        .copy-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background-color: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .copy-btn:hover { background-color: #388e3c; }
+        .copy-btn { 
+            position: absolute; 
+            right: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            background-color: #4caf50; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 13px;
+        }
+        .copy-btn:active { background-color: #388e3c; }
         #loading { font-size: 18px; color: #666; margin-top: 50px; }
-        h2 { color: #2c3e50; margin-bottom: 25px; }
+        @media (min-width: 800px) {
+            body { padding: 40px; }
+            .search-box, .result-item { max-width: 800px; margin-left: auto; margin-right: auto; }
+        }
     </style>
 </head>
 <body>
@@ -38,74 +101,58 @@
                 const res = await fetch(url);
                 const text = await res.text();
                 const json = JSON.parse(text.substring(47).slice(0, -2));
-                
                 allData = json.table.rows.map(row => ({
                     company: row.c[0] ? String(row.c[0].v || "") : "",
                     site: row.c[1] ? String(row.c[1].v || "") : "",
                     address: row.c[2] ? String(row.c[2].v || "") : ""
                 })).filter(item => item.company !== "" && item.company !== "건설사");
-
                 document.getElementById('loading').style.display = 'none';
                 renderResults(allData);
             } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다. 구글 시트 공유 설정을 확인해주세요.';
+                document.getElementById('loading').innerText = '데이터를 불러오지 못했습니다.';
             }
         }
 
         function renderResults(dataList) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
-            
             if (dataList.length === 0) {
                 resultsDiv.innerHTML = '<p style="color:#999; margin-top:20px;">검색 결과가 없습니다.</p>';
                 return;
             }
-
             dataList.forEach(item => {
-                const fullText = `${item.company} ${item.site} ${item.address}`;
                 const card = document.createElement('div');
                 card.className = 'result-item';
                 card.innerHTML = `
                     <div class="info-text"><b>건설사:</b> ${item.company}</div>
                     <div class="info-text"><b>현장명:</b> ${item.site}</div>
                     <div class="info-text"><b>주소:</b> ${item.address}</div>
-                    <button class="copy-btn" onclick="copyToClipboard('${fullText}')">전체 복사</button>
+                    <!-- 클릭 시 item.address만 전달하도록 수정 -->
+                    <button class="copy-btn" onclick="copyToClipboard('${item.address}')">주소 복사</button>
                 `;
                 resultsDiv.appendChild(card);
             });
         }
 
-        // 띄어쓰기(다중 키워드) 검색 기능
         function searchData() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            if (!query) {
-                renderResults(allData);
-                return;
-            }
-
-            // 공백을 기준으로 단어를 나눕니다.
+            if (!query) { renderResults(allData); return; }
             const keywords = query.split(/\s+/);
-
             const filtered = allData.filter(item => {
                 const targetText = (item.company + item.site + item.address).toLowerCase();
-                // 입력된 모든 단어가 포함되어 있는지 검사 (AND 검색)
                 return keywords.every(keyword => targetText.includes(keyword));
             });
-
             renderResults(filtered);
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('복사되었습니다!\n' + text);
+                alert('주소가 복사되었습니다!\n' + text);
             }).catch(err => {
-                alert('복사 실패! 브라우저 설정을 확인해주세요.');
+                alert('복사 실패!');
             });
         }
 
-        // 페이지 로드시 데이터 불러오기 실행
         loadData();
     </script>
 </body>
