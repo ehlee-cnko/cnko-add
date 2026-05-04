@@ -8,24 +8,37 @@
         body { 
             font-family: 'Malgun Gothic', sans-serif; 
             background-color: #f4f7f8; 
-            padding: 10px; 
+            padding: 0; /* body 패딩 제거 (상단 고정을 위해) */
             margin: 0;
             text-align: center; 
         }
+
+        /* 제목 부분 */
         h2 { color: #2c3e50; margin: 20px 0; font-size: 1.5rem; }
+
+        /* 검색 박스를 상단에 고정하는 핵심 스타일 */
+        .sticky-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #f4f7f8; /* 배경색과 맞춰서 스크롤 시 뒤쪽 글자가 안 보이게 */
+            padding: 10px;
+        }
+
         .search-box { 
             background-color: #fff9c4; 
-            padding: 20px; 
+            padding: 15px; 
             border-radius: 15px; 
             border: 3px solid #fbc02d; 
             display: block; 
-            margin: 0 auto 20px auto; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            margin: 0 auto; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             box-sizing: border-box;
             width: 100%;
         }
+
         input { 
-            padding: 15px; 
+            padding: 12px; 
             font-size: 18px; 
             border-radius: 10px; 
             border: 1px solid #ccc; 
@@ -33,6 +46,12 @@
             box-sizing: border-box; 
             outline: none; 
         }
+
+        /* 결과 리스트 영역에 여백 추가 */
+        #results {
+            padding: 10px;
+        }
+
         .result-item { 
             background: white; 
             border: 1px solid #eee; 
@@ -49,6 +68,7 @@
             box-sizing: border-box;
             text-align: left;
         }
+
         .info-text { 
             margin-bottom: 5px; 
             font-size: 15px; 
@@ -57,6 +77,7 @@
             padding-right: 85px; 
         }
         .info-text b { color: #2e7d32; }
+
         .copy-btn { 
             position: absolute; 
             right: 15px; 
@@ -72,10 +93,11 @@
             font-size: 13px;
         }
         .copy-btn:active { background-color: #388e3c; }
+
         #loading { font-size: 18px; color: #666; margin-top: 50px; }
+
         @media (min-width: 800px) {
-            body { padding: 40px; }
-            .search-box, .result-item { max-width: 800px; margin-left: auto; margin-right: auto; }
+            .sticky-wrapper, .result-item { max-width: 800px; margin-left: auto; margin-right: auto; }
         }
     </style>
 </head>
@@ -83,8 +105,11 @@
 
     <h2>🏢 씨앤코 현장주소</h2>
     
-    <div class="search-box">
-        <input type="text" id="searchInput" onkeyup="searchData()" placeholder="건설사, 현장명 또는 주소 검색...">
+    <!-- 검색창을 감싸는 sticky 영역 추가 -->
+    <div class="sticky-wrapper">
+        <div class="search-box">
+            <input type="text" id="searchInput" onkeyup="searchData()" placeholder="건설사, 현장명 또는 주소 검색...">
+        </div>
     </div>
 
     <div id="loading">데이터를 불러오고 있습니다...</div>
@@ -127,7 +152,6 @@
                     <div class="info-text"><b>건설사:</b> ${item.company}</div>
                     <div class="info-text"><b>현장명:</b> ${item.site}</div>
                     <div class="info-text"><b>주소:</b> ${item.address}</div>
-                    <!-- 클릭 시 item.address만 전달하도록 수정 -->
                     <button class="copy-btn" onclick="copyToClipboard('${item.address}')">주소 복사</button>
                 `;
                 resultsDiv.appendChild(card);
